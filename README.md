@@ -1,5 +1,5 @@
 # AllOf
-Forward methods to IEnumerable&lt;T> with a single call
+Forward a single method call to the same method on all members of an IEnumerable&lt;T>
 
 ## Support
 
