@@ -1,4 +1,5 @@
 # AllOf
+
 Forward a single method call to the same method on all members of an IEnumerable&lt;T>
 
 ## Support
@@ -73,5 +74,5 @@ await Task.WhenAll(
 ## Caveats
 
 Only interfaces with methods that return void or Task are supported
- - Return types (Properties or methods with return objects) cannot be condensed from an IEnumerable<T> to a T!
 
+-   Return types (Properties or methods with return objects) cannot be condensed from an IEnumerable<T> to a T!
