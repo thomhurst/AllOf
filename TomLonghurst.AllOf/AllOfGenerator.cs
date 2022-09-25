@@ -97,12 +97,12 @@ public class AllOfGenerator : ISourceGenerator
                     returnType = VoidKeyword;
                 }
 
-                var async = methodSymbol.ReturnType.SpecialType == SpecialType.System_Void ? string.Empty : AsyncKeyword;
+                var asyncKeyword = methodSymbol.ReturnType.SpecialType == SpecialType.System_Void ? string.Empty : AsyncKeyword;
 
                 codeWriter.WriteLine("/// <summary>");
                 codeWriter.WriteLine($"/// Calls {methodSymbol.Name} on each item in the <see cref=\"IEnumerable{{{interfaceShortName}}}\"/>");
                 codeWriter.WriteLine("/// </summary>");
-                codeWriter.WriteLine( $"public {async}{returnType} {methodSymbol.Name}{GetGenericType(methodSymbol)}({string.Join(", ", parametersWithType)})");
+                codeWriter.WriteLine( $"public {asyncKeyword}{returnType} {methodSymbol.Name}{GetGenericType(methodSymbol)}({string.Join(", ", parametersWithType)})");
                 codeWriter.WriteLine("{");
                 GenerateBody(codeWriter, methodSymbol);
                 codeWriter.WriteLine("}");
