@@ -9,7 +9,17 @@ If you like this library, consider buying me a coffee.
 
 ## Usage
 
-1.  Register multiple implementations of your interfaces(s)
+1.  Add the [GenerateAllOf] attribute onto your interface
+
+```csharp
+[GenerateAllOf]
+public interface IMyInterface
+{
+    ...
+}
+```
+
+2.  Register multiple implementations of your interfaces(s) in your ServiceCollection
 
 ```csharp
 services.AddSingleton<IMyInterface, MyImplementation1>()
@@ -17,27 +27,27 @@ services.AddSingleton<IMyInterface, MyImplementation1>()
     .AddTransient<IMyInterface, MyImplementation3>();
 ```
 
-2.  Call `AddAllOfs();`
+3.  Call `AddAllOfs()` on your ServiceCollection
 
 ```csharp
         services.AddAllOfs()
 ```
 
-3.  Inject `AllOf_T` into your class
+4.  Inject `AllOf_T` into your class
 
 ```csharp
 public class MyWorker
 {
   private readonly IMyInterface _myInterface;
   
-  public MyWorker(AllOf_IMyInterface myInterface)
+  public MyWorker(AllOf_IMyInterface allOfMyInterface)
   {
-    _myInterface = myInterface;
+      _myInterface = allOfMyInterface;
   }
 }
 ```
 
-4.  Call a method on your AllOf. It'll now call the same method in all of your registered classes
+5.  Call a method on your AllOf. It'll now call the same method in all of your registered classes
 
 ```csharp
 _myInterface.DoSomething();
