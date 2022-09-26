@@ -101,19 +101,16 @@ public class AllOfGenerator : ISourceGenerator
                 var parametersWithType = methodSymbol.Parameters.Select(p =>
                     $"{GetRef(p.RefKind)} {string.Join(" ", p.RefCustomModifiers)} {string.Join(" ", p.CustomModifiers)} {p.Type.ToDisplayString(SymbolDisplayFormats.NamespaceAndType)} {p.Name}".Trim());
 
-                var returnType = methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType) ;
-                
-                if (returnType == "System.Void")
-                {
-                    returnType = VoidKeyword;
-                }
+                var returnType = methodSymbol.ReturnsVoid 
+                ? VoidKeyword
+                : methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType) ;
 
-                var asyncKeyword = methodSymbol.ReturnType.SpecialType == SpecialType.System_Void ? string.Empty : AsyncKeyword;
+                var asyncKeyword = methodSymbol.ReturnsVoid ? string.Empty : AsyncKeyword;
 
                 codeWriter.WriteLine("/// <summary>");
                 codeWriter.WriteLine($"/// Calls {methodSymbol.Name} on each item in the <see cref=\"IEnumerable{{{interfaceShortName}}}\"/>");
                 codeWriter.WriteLine("/// </summary>");
-                codeWriter.WriteLine( $"public {asyncKeyword}{returnType} {methodSymbol.Name}{GetGenericType(methodSymbol)}({string.Join(", ", parametersWithType)})");
+                codeWriter.WriteLine( $"public {returnType} {methodSymbol.Name}{GetGenericType(methodSymbol)}({string.Join(", ", parametersWithType)})");
                 codeWriter.WriteLine("{");
                 GenerateBody(codeWriter, methodSymbol);
                 codeWriter.WriteLine("}");
@@ -135,19 +132,21 @@ public class AllOfGenerator : ISourceGenerator
             p => $"{GetRef(p.RefKind)} {p.Name}".Trim()
         );
         
-        if (methodSymbol.ReturnType.SpecialType == SpecialType.System_Void)
+        if (methodSymbol.ReturnsVoid)
         {
             codeWriter.WriteLine("foreach (var item in Items)");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine($"item.{methodSymbol.Name}({string.Join(", ", parameters)});");
             codeWriter.WriteLine("}");
         }
+        else if(methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType) == typeof(Task).FullName)
+        {
+            codeWriter.WriteLine($"return Task.WhenAll(Items.Select(item => item.{methodSymbol.Name}({string.Join(", ", parameters)})));");
+        }
         else
         {
-            codeWriter.WriteLine($"foreach (var task in Items.Select(item => item.{methodSymbol.Name}({string.Join(", ", parameters)})))");
-            codeWriter.WriteLine("{");
-            codeWriter.WriteLine("await task;");
-            codeWriter.WriteLine("}");
+            codeWriter.WriteLine($"var tasks = Items.Select(item => item.{methodSymbol.Name}({string.Join(", ", parameters)}).AsTask());");
+            codeWriter.WriteLine("return new ValueTask(Task.WhenAll(tasks));");
         }
     }
 

@@ -44,6 +44,8 @@ public class Tests
             .AddSingleton<IMyAsyncTestInterface, MyAsyncTestClass3>()
             .AddAllOfs()
             .BuildServiceProvider();
+
+        var sbLock = new object();
         
         var stringBuilder = new StringBuilder();
     
@@ -54,7 +56,10 @@ public class Tests
         var task = myInterface.OnEach().BlahAsync(async str =>
         {
             await Task.Delay(1000);
-            stringBuilder.Append(str + " ");
+            lock (sbLock)
+            {
+                stringBuilder.Append(str + " ");
+            }
         });
     
         // We didn't await so no time for the StringBuilder to be called
@@ -63,7 +68,9 @@ public class Tests
     
         await task;
         
-        Assert.That(stringBuilder.ToString(), Is.EqualTo("MyAsyncTestClass MyAsyncTestClass2 MyAsyncTestClass3 "));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyAsyncTestClass"));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyAsyncTestClass2"));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyAsyncTestClass3"));
     }
     
     [Test]
@@ -81,11 +88,16 @@ public class Tests
         var myInterface = serviceProvider.GetRequiredService<AllOf<IMyValueTaskAsyncTestInterface>>();
         
         Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyValueTaskAsyncTestInterface_Impl"));
-    
+        
+        var sbLock = new object();
+
         var task = myInterface.OnEach().BlahAsync(async str =>
         {
             await Task.Delay(100);
-            stringBuilder.Append(str + " ");
+            lock (sbLock)
+            {
+                stringBuilder.Append(str + " ");
+            }
         });
     
         // We didn't await so no time for the StringBuilder to be called
@@ -94,7 +106,9 @@ public class Tests
     
         await task;
         
-        Assert.That(stringBuilder.ToString(), Is.EqualTo("MyValueTaskAsyncTestClass MyValueTaskAsyncTestClass2 MyValueTaskAsyncTestClass3 "));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyValueTaskAsyncTestClass"));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyValueTaskAsyncTestClass2"));
+        Assert.That(stringBuilder.ToString(), Contains.Substring("MyValueTaskAsyncTestClass3"));
     }
     
     [Test]
