@@ -1,4 +1,6 @@
-﻿namespace TomLonghurst.AllOf.UnitTests;
+﻿using TomLonghurst.AllOf.UnitTests.TestModels.Interfaces;
+
+namespace TomLonghurst.AllOf.UnitTests.TestModels.Classes;
 
 public class MyAsyncTestClass : IMyAsyncTestInterface
 {

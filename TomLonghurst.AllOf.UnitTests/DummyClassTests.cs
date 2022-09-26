@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TomLonghurst.AllOf.Extensions;
+using TomLonghurst.AllOf.UnitTests.TestModels.Classes;
+using TomLonghurst.AllOf.UnitTests.TestModels.Interfaces;
+
 namespace TomLonghurst.AllOf.UnitTests;
 
 public class DummyClassTests

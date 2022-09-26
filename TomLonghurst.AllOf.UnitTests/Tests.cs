@@ -4,6 +4,8 @@ using Moq;
 using TomLonghurst.AllOf.Extensions;
 using TomLonghurst.AllOf.Models;
 using TomLonghurst.AllOf.UnitTests.DependentProject;
+using TomLonghurst.AllOf.UnitTests.TestModels.Classes;
+using TomLonghurst.AllOf.UnitTests.TestModels.Interfaces;
 
 namespace TomLonghurst.AllOf.UnitTests;
 
@@ -149,15 +151,24 @@ public class Tests
     {
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IMyInterfaceWithoutAttribute, MyClassWithoutAttribute>()
+            .AddSingleton<ConstructorUsingInterfaceWithoutAttribute>()
             .AddAllOfs()
             .BuildServiceProvider();
 
         var allOf = serviceProvider.GetRequiredService<AllOf<IMyInterfaceWithoutAttribute>>();
-        
+
         Assert.That(allOf, Is.Not.Null);
 
         var implementation = allOf.OnEach();
         
         Assert.That(implementation, Is.Not.Null);
+        
+        var constructorClass = serviceProvider.GetRequiredService<ConstructorUsingInterfaceWithoutAttribute>();
+        
+        Assert.That(constructorClass, Is.Not.Null);
+        Assert.That(constructorClass.MyTestInterface.Items, Is.Not.Null);
+        Assert.That(constructorClass.MyTestInterface.OnEach(), Is.Not.Null);
     }
+    
+    
 }
