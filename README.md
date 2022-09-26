@@ -84,8 +84,8 @@ public class MyWorker
   public void DoSomething()
   {
         ...
-        _myInterfaces.OnEach().PublishSomething();
-        await _myInterfaces.OnEach().PublishSomethingAsync();
+        _myInterfaces.OnEach().DoSomething();
+        await _myInterfaces.OnEach().DoSomethingAsync();
   }
 }
 ```
