@@ -123,7 +123,7 @@ public class MyWorker
 }
 ```
 
-4.  Call `AllOf.OnEach().SomeMethod()` and it'll call the same method in all of the different implementations. This handles asynchronous Tasks as well as Synchronous tasks, so no loop or Task handling.
+4.  Call `AllOf.OnEach().SomeMethod()` and it'll call the same method in all of the different implementations. This handles asynchronous Tasks as well as synchronous methods, so no loop or Task handling for you to implement.
 
 ```csharp
 _myInterfaces.OnEach().DoSomething();
