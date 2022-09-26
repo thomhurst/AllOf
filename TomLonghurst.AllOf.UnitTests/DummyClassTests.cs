@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TomLonghurst.AllOf.Extensions;
-using TomLonghurst.AllOf.SourceGenerator.Attributes;
 
 namespace TomLonghurst.AllOf.UnitTests;
 
@@ -57,31 +56,4 @@ public class DummyClassTests
                 .First();
         }
     }
-}
-
-[GenerateAllOf]
-public interface IMyDummyTestInterface
-{
-    void Blah();
-}
-
-public class MyBaseTestClass : IMyDummyTestInterface
-{
-    public int BlahCount { get; private set; }
-    public void Blah()
-    {
-        BlahCount++;
-    }
-}
-
-public class MyTransientTestClass : MyBaseTestClass
-{
-}
-
-public class MyScopedTestClass : MyBaseTestClass
-{
-}
-
-public class MySingletonTestClass : MyBaseTestClass
-{
 }
