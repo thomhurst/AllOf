@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using TomLonghurst.AllOf.Extensions;
+using TomLonghurst.AllOf.SourceGenerator.Attributes;
 
 namespace TomLonghurst.AllOf.UnitTests;
 

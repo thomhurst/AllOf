@@ -1,7 +1,8 @@
 ﻿using System.Data;
 using Microsoft.Extensions.DependencyInjection;
+using TomLonghurst.AllOf.Models;
 
-namespace TomLonghurst.AllOf;
+namespace TomLonghurst.AllOf.Extensions;
 
 public static class DependencyInjectionExtensions
 {
@@ -11,6 +12,9 @@ public static class DependencyInjectionExtensions
         {
             throw new ReadOnlyException($"{nameof(services)} is read only");
         }
+
+        services.AddTransient(typeof(IAllOfImplementationWrapper<>), typeof(AllOfImplementationWrapper<>));
+        services.AddTransient(typeof(IAllOf<>), typeof(AllOf<>));
 
         var allOfBaseInterface = typeof(IAllOf);
 

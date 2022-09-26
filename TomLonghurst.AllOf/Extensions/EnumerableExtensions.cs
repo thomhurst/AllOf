@@ -1,4 +1,4 @@
-﻿namespace TomLonghurst.AllOf;
+﻿namespace TomLonghurst.AllOf.Extensions;
 
 internal static class EnumerableExtensions
 {

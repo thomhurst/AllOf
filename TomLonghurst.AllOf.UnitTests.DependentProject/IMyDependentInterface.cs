@@ -1,3 +1,5 @@
+using TomLonghurst.AllOf.SourceGenerator.Attributes;
+
 namespace TomLonghurst.AllOf.UnitTests.DependentProject;
 
 [GenerateAllOf]

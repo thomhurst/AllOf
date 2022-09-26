@@ -1,6 +1,6 @@
 ﻿using System.CodeDom.Compiler;
 
-namespace TomLonghurst.AllOf;
+namespace TomLonghurst.AllOf.SourceGenerator.Helpers;
 
 public class CodeGenerationTextWriter : IndentedTextWriter
 {

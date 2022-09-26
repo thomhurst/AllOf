@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace TomLonghurst.AllOf;
+namespace TomLonghurst.AllOf.SourceGenerator.Helpers;
 
 public static class SymbolDisplayFormats
 {

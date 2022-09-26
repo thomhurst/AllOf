@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using TomLonghurst.AllOf.SourceGenerator.Attributes;
+using TomLonghurst.AllOf.SourceGenerator.Helpers;
 
-namespace TomLonghurst.AllOf;
+namespace TomLonghurst.AllOf.SourceGenerator;
 
 internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 {

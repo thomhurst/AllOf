@@ -1,9 +1,11 @@
 ﻿using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using TomLonghurst.AllOf.Helpers;
+using TomLonghurst.AllOf.Extensions;
+using TomLonghurst.AllOf.Models;
+using TomLonghurst.AllOf.SourceGenerator.Helpers;
 
-namespace TomLonghurst.AllOf;
+namespace TomLonghurst.AllOf.SourceGenerator;
 
 [Generator]
 public class AllOfGenerator : ISourceGenerator
@@ -47,7 +49,11 @@ public class AllOfGenerator : ISourceGenerator
         codeWriter.WriteLine(context.GetUsingStatementsForTypes(
             syntaxReciever.Identified.Select(d => d.InterfaceType),
             typeof(DependencyInjectionExtensions),
+            typeof(IAllOf),
             typeof(IAllOf<>),
+            typeof(AllOf<>),
+            typeof(IAllOfImplementationWrapper<>),
+            typeof(AllOfImplementationWrapper<>),
             typeof(IEnumerable<>),
             typeof(Enumerable),
             typeof(string),
@@ -106,6 +112,11 @@ public class AllOfGenerator : ISourceGenerator
                 codeWriter.WriteLine("{");
                 GenerateBody(codeWriter, methodSymbol);
                 codeWriter.WriteLine("}");
+                
+                codeWriter.WriteLine();
+                codeWriter.WriteLine($"public static implicit operator AllOf_{interfaceShortName}_Impl(AllOf<AllOf_{interfaceShortName}_Impl> allOf) => allOf.OnEach();"); 
+                codeWriter.WriteLine();
+                
                 codeWriter.WriteLine();
             }
             

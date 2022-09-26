@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using TomLonghurst.AllOf.Extensions;
 using TomLonghurst.AllOf.UnitTests.DependentProject;
 
 namespace TomLonghurst.AllOf.UnitTests;
