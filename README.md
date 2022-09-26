@@ -1,6 +1,6 @@
 # AllOf
 
-Create Publish and Subscribe classes without creating Publisher classes just to call Subscriber classes.
+Use `Publish/Subscribe` type classes without creating Publisher classes just to call Subscriber classes.
 Create your implementations, register them under the same interface, and just inject in AllOf<Interface> and use that to send a 'Publish' command.
 
 ## Support
