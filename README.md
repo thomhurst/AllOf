@@ -1,26 +1,101 @@
 # AllOf
 
-Forward a single method call to the same method on all members of an IEnumerable&lt;T>
+Use `Publish/Subscribe` type classes without creating Publisher classes just to call Subscriber classes.
+Create your implementations, register them under the same interface, and just inject in AllOf<Interface> and use that to send a 'Publish' command.
 
 ## Support
 
 If you like this library, consider buying me a coffee.
 
 <a href="https://www.buymeacoffee.com/tomhurst" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
-
-## Usage
-
-1.  Add the [GenerateAllOf] attribute onto your interface
-
+    
+## Example
+Reduce:
+    
 ```csharp
-[GenerateAllOf]
-public interface IMyInterface
+public class MyImplementation1 : IMyInterface { ... }
+public class MyImplementation2 : IMyInterface { ... }
+public class MyImplementation3 : IMyInterface { ... }
+    
+public interface IMyPublisher
 {
-    ...
+    void PublishSomething();
+    Task PublishSomethingAsync();
+}
+
+public class MyPublisher : IMyPublisher 
+{
+    private readonly IEnumerable<IMyInterface> _myInterfaces;
+    
+    public MyPublisher(IEnumerable<IMyInterface> myInterfaces)
+    {
+        _myInterfaces = myInterfaces;
+    }
+    
+    public void PublishSomething()
+    {
+        foreach(var myInterface in _myInterfaces)
+        {
+            myInterface.DoSomething();
+        }
+    }
+    
+    public async Task PublishSomethingAsync()
+    {
+        var tasks = _myInterfaces.Select(myInterface => myInterface.DoSomething());
+        await Task.WhenAll(tasks);
+    }
+}
+    
+public class MyWorker
+{
+  private readonly IMyPublisher _myPublisher;
+  
+  public MyWorker(IMyPublisher _myPublisher)
+  {
+      _myPublisher = myPublisher;
+  }
+    
+  public Task DoSomething()
+  {
+        ...
+        _myPublisher.PublishSomething();
+        await _myPublisher.PublishSomethingAsync();
+  }
+}   
+```   
+    
+To
+    
+```csharp
+public class MyImplementation1 : IMyInterface { ... }
+public class MyImplementation2 : IMyInterface { ... }
+public class MyImplementation3 : IMyInterface { ... }
+    
+public class MyWorker
+{
+  private readonly AllOf<IMyInterface> _myInterfaces;
+  
+  public MyWorker(AllOf<IMyInterface> myInterfaces)
+  {
+      _myInterfaces = myInterfaces;
+  }
+    
+  public void DoSomething()
+  {
+        ...
+        _myInterfaces.OnEach().PublishSomething();
+        await _myInterfaces.OnEach().PublishSomethingAsync();
+  }
 }
 ```
+    
+It may not seem like much, but it eliminates an entire class. 
+It also means you don't need to handle the looping and Task (if async) management on these methods.
+    
+## Usage
 
-2.  Register multiple implementations of your interfaces(s) in your ServiceCollection
+1.  Register multiple implementations of your interfaces(s) in your ServiceCollection
 
 ```csharp
 services.AddSingleton<IMyInterface, MyImplementation1>()
@@ -28,31 +103,31 @@ services.AddSingleton<IMyInterface, MyImplementation1>()
     .AddTransient<IMyInterface, MyImplementation3>();
 ```
 
-3.  Call `AddAllOfs()` on your ServiceCollection
+2.  Call `AddAllOfs()` on your ServiceCollection
 
 ```csharp
         services.AddAllOfs()
 ```
 
-4.  Inject `AllOf_T` into your class
+3.  Inject `AllOf<T>` into your class
 
 ```csharp
 public class MyWorker
 {
-  private readonly IMyInterface _myInterface;
+  private readonly AllOf<IMyInterface> _myInterfaces;
   
-  public MyWorker(AllOf_IMyInterface allOfMyInterface)
+  public MyWorker(AllOf<IMyInterface> myInterfaces)
   {
-      _myInterface = allOfMyInterface;
+      _myInterfaces = myInterfaces;
   }
 }
 ```
 
-5.  Call a method on your AllOf. It'll now call the same method in all of your registered classes
+4.  Call `AllOf.OnEach().SomeMethod()` and it'll call the same method in all of the different implementations. This handles asynchronous Tasks as well as Synchronous tasks, so no loop or Task handling.
 
 ```csharp
-_myInterface.DoSomething();
-await _myInterface.DoSomethingElseAsync();
+_myInterfaces.OnEach().DoSomething();
+await _myInterface.OnEach().DoSomethingElseAsync();
 ```
 
 The above will essentially do:
@@ -69,10 +144,50 @@ await Task.WhenAll(
 );
 ```
 
-5.  Enjoy!
+ # AllOf<>
+    
+`AllOf<>` is an interface so can be easily mocked. As well as `OnEach()`, it holds an `Items` property which is an `IEnumerable<T>` if you need to access your enumerable of implementations.
 
-## Caveats
+## Custom Naming
+    
+If you want to change the naming, create a wrapper class around it and register it in the DI.
+E.g.
 
-Only interfaces with methods that return void or Task are supported
+```csharp
+public interface PublisherOf<out T>
+{
+    T ForEachSubscriber();
+}
 
--   Return types (Properties or methods with return objects) cannot be condensed from an IEnumerable<T> to a T!
+public class PublisherOfImpl<T> : PublisherOf<T>
+{
+    private readonly AllOf<T> _allOf;
+
+    public PublisherOfImpl(AllOf<T> allOf)
+    {
+        _allOf = allOf;
+    }
+    
+    public T ForEachSubscriber()
+    {
+        return _allOf.OnEach();
+    }
+}
+```
+
+in Startup do
+```csharp
+services.AddTransient(typeof(PublisherOf<>), typeof(PublisherOfImpl<>))
+```
+
+And then you can inject this type into your classes, if that reads better for your codebase.
+
+```csharp
+public class MyLoginService
+{
+    public MyLoginService(PublisherOf<ICustomerLoggedInEvent> customerLoggedInEventPublisher)
+    {
+        _customerLoggedInEventPublisher = customerLoggedInEventPublisher;
+    }
+}
+```
