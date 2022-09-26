@@ -22,31 +22,6 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         {
             Process(context, constructorDeclarationSyntax);
         }
-
-        if (context.Node is TypeDeclarationSyntax typeDeclarationSyntax)
-        {
-            Process(context, typeDeclarationSyntax);
-        }
-    }
-
-    private void Process(GeneratorSyntaxContext context, TypeDeclarationSyntax typeDeclarationSyntax)
-    {
-        if (typeDeclarationSyntax.TypeParameterList?.Parameters.Count != 1)
-        {
-            return;
-        }
-
-        var firstType = typeDeclarationSyntax.TypeParameterList.Parameters.First();
-
-        var nonGenericType = typeDeclarationSyntax.TypeParameterList.WithParameters(default);
-        
-        var symbol = context.SemanticModel.GetDeclaredSymbol(nonGenericType);
-
-    }
-
-    private void Process(GeneratorSyntaxContext context, TypeParameterSyntax typeParameterSyntax)
-    {
-        
     }
 
     private void Process(GeneratorSyntaxContext context, InterfaceDeclarationSyntax interfaceDeclarationSyntax)
