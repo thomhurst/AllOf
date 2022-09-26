@@ -192,5 +192,10 @@ public class MyLoginService
     {
         _customerLoggedInEventPublisher = customerLoggedInEventPublisher;
     }
+
+    public void DoStuff()
+    {
+        _customerLoggedInEventPublisher.ForEachSubscriber().DoThis();
+    }
 }
 ```
