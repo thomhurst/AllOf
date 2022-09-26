@@ -10,4 +10,11 @@ public static class SymbolDisplayFormats
             SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
             SymbolDisplayGenericsOptions.IncludeTypeParameters
         );
+    
+    public static readonly SymbolDisplayFormat GenericBase =
+        new(
+            SymbolDisplayGlobalNamespaceStyle.Omitted,
+            SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            SymbolDisplayGenericsOptions.None
+        );
 }

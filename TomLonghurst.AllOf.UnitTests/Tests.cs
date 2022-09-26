@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using TomLonghurst.AllOf.Extensions;
+using TomLonghurst.AllOf.Models;
 using TomLonghurst.AllOf.UnitTests.DependentProject;
 
 namespace TomLonghurst.AllOf.UnitTests;
@@ -141,5 +142,24 @@ public class Tests
         myInterface.MyDependentMethod(ref result);
         
         Assert.That(result, Is.EqualTo(123));
+    }
+
+    [Test]
+    public void ConstructorUsingInterfaceWithoutAttribute()
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<IMyInterfaceWithoutAttribute, MyClassWithoutAttribute>()
+            .AddAllOfs()
+            .BuildServiceProvider();
+
+        var allOf = serviceProvider.GetRequiredService<AllOf<IMyInterfaceWithoutAttribute>>();
+
+        AllOf_IMyInterfaceWithoutAttribute blah = default;
+        
+        Assert.That(allOf, Is.Not.Null);
+
+        var implementation = allOf.OnEach();
+        
+        Assert.That(implementation, Is.Not.Null);
     }
 }

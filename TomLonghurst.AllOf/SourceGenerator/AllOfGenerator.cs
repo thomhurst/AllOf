@@ -13,6 +13,8 @@ public class AllOfGenerator : ISourceGenerator
     private const string AsyncKeyword = "async ";
     private const string VoidKeyword = "void";
 
+    private List<string> typesWritten = new();
+
     public void Initialize(GeneratorInitializationContext context)
     {
 #if DEBUG
@@ -50,10 +52,8 @@ public class AllOfGenerator : ISourceGenerator
             syntaxReciever.Identified.Select(d => d.InterfaceType),
             typeof(DependencyInjectionExtensions),
             typeof(IAllOf),
-            typeof(IAllOf<>),
             typeof(AllOf<>),
-            typeof(IAllOfImplementationWrapper<>),
-            typeof(AllOfImplementationWrapper<>),
+            typeof(AllOfImpl<>),
             typeof(IEnumerable<>),
             typeof(Enumerable),
             typeof(string),
@@ -69,6 +69,13 @@ public class AllOfGenerator : ISourceGenerator
             
             var interfaceShortName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             var interfaceLongName = typeSymbol.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
+
+            if (typesWritten.Contains(interfaceLongName))
+            {
+                continue;
+            }
+            
+            typesWritten.Add(interfaceLongName);
             
             codeWriter.WriteLine($"namespace {typeSymbol.ContainingNamespace}");
             codeWriter.WriteLine("{");
@@ -78,18 +85,16 @@ public class AllOfGenerator : ISourceGenerator
             codeWriter.WriteLine($"/// <para>Be sure to call .AddAllOfs() on your IServiceCollection to register this type</para>"); 
             codeWriter.WriteLine("/// </summary>");
 
-            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName} : {interfaceLongName}, IAllOf<{interfaceLongName}>");
+            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName} : AllOf<{interfaceLongName}>, {interfaceLongName}");
             codeWriter.WriteLine("{");
             
-            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl : AllOf_{interfaceShortName}");
+            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"public IEnumerable<{interfaceLongName}> Items {{ get; }}");
-            codeWriter.WriteLine();
-            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl(IEnumerable<{interfaceLongName}> items)");
+            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl(IEnumerable<{interfaceLongName}> items) : base(items)");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine("Items = items;");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
+            codeWriter.WriteLine($"public override {interfaceShortName} OnEach() => this;");
             
             foreach (var methodSymbol in identifiedDecorator.MethodsInInterface)
             {
@@ -114,7 +119,7 @@ public class AllOfGenerator : ISourceGenerator
                 codeWriter.WriteLine("}");
                 
                 codeWriter.WriteLine();
-                codeWriter.WriteLine($"public static implicit operator AllOf_{interfaceShortName}_Impl(AllOf<AllOf_{interfaceShortName}_Impl> allOf) => allOf.OnEach();"); 
+                codeWriter.WriteLine($"public static implicit operator AllOf_{interfaceShortName}_Impl(AllOfImpl<AllOf_{interfaceShortName}_Impl> allOf) => allOf.OnEach();"); 
                 codeWriter.WriteLine();
                 
                 codeWriter.WriteLine();

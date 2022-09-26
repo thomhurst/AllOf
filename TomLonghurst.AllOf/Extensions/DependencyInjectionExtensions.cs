@@ -13,9 +13,39 @@ public static class DependencyInjectionExtensions
             throw new ReadOnlyException($"{nameof(services)} is read only");
         }
 
-        services.AddTransient(typeof(IAllOfImplementationWrapper<>), typeof(AllOfImplementationWrapper<>));
-        services.AddTransient(typeof(IAllOf<>), typeof(AllOf<>));
+        RegisterAllOf(services);
+        RegisterUserTypes(services);
 
+        return services;
+    }
+
+    private static void RegisterAllOf(IServiceCollection services)
+    {
+        var allOfBaseInterface = typeof(AllOf<>);
+
+        var typesInAssemblies = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .ToList();
+
+        var internalTypes = new[] { typeof(IAllOf).FullName, typeof(AllOf<>).GetFullNameWithoutGenericArity() };
+        
+        foreach (var userDeclaredType in typesInAssemblies
+                     .Where(type => !type.IsInterface)
+                     .Where(type => type.GetInterfaces().Any(i => i.GetFullNameWithoutGenericArity() == "TomLonghurst.AllOf.Models.AllOf")))
+        {
+            var userDeclaredInterface = userDeclaredType.GetInterfaces()
+                .First(i => !internalTypes.Contains(i.GetFullNameWithoutGenericArity())
+                            && !i.GetInterfaces().Any(i2 => internalTypes.Contains(i2.GetFullNameWithoutGenericArity())));
+
+            var allOfWithGenericTypeProvided = allOfBaseInterface.MakeGenericType(userDeclaredInterface);
+
+            services.AddTransient(allOfWithGenericTypeProvided, userDeclaredType);
+        }
+    }
+
+    private static void RegisterUserTypes(IServiceCollection services)
+    {
         var allOfBaseInterface = typeof(IAllOf);
 
         var typesInAssemblies = AppDomain.CurrentDomain
@@ -35,7 +65,5 @@ public static class DependencyInjectionExtensions
                 services.AddTransient(interfaceType, implementationType);
             }
         }
-
-        return services;
     }
 }

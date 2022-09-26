@@ -2,11 +2,11 @@
 
 namespace TomLonghurst.AllOf.UnitTests;
 
-public class ConstructorImplicitConversion
+public class ConstructorWithTConversion
 {
     private readonly IMyTestInterface _myTestInterface;
 
-    public ConstructorImplicitConversion(AllOf<IMyTestInterface> myTestInterface)
+    public ConstructorWithTConversion(AllOf<IMyTestInterface> myTestInterface)
     {
         _myTestInterface = myTestInterface.OnEach();
     }
