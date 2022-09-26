@@ -22,11 +22,52 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         {
             Process(context, constructorDeclarationSyntax);
         }
+
+        if (context.Node is TypeSyntax typeSyntax)
+        {
+            Process(context, typeSyntax);
+        }
+    }
+
+    private void Process(GeneratorSyntaxContext context, TypeSyntax typeSyntax)
+    {
+        var symbol = context.SemanticModel.GetDeclaredSymbol(typeSyntax) ?? context.SemanticModel.GetSymbolInfo(typeSyntax).Symbol;
+
+        if (symbol is not INamedTypeSymbol typeSymbol)
+        {
+            return;
+        }
+
+        if (typeSymbol.TypeArguments.Length != 1)
+        {
+            return;
+        }
+
+        if (typeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase) !=
+            typeof(AllOf<>).GetFullNameWithoutGenericArity())
+        {
+            return;
+        }
+
+        var interfaceArgument = typeSymbol.TypeArguments.First();
+
+        if (interfaceArgument is not INamedTypeSymbol interfaceType)
+        {
+            return;
+        }
+
+        var methods = GetMethods(interfaceType);
+        
+        Identified.Add(new IndentifiedAllOf
+        {
+            InterfaceType = interfaceType,
+            MethodsInInterface = methods
+        });
     }
 
     private void Process(GeneratorSyntaxContext context, InterfaceDeclarationSyntax interfaceDeclarationSyntax)
     {
-        var symbol = context.SemanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax);
+        var symbol = context.SemanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax) ?? context.SemanticModel.GetSymbolInfo(interfaceDeclarationSyntax).Symbol;
 
         if (symbol is not INamedTypeSymbol interfaceSymbol)
         {
@@ -53,7 +94,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         });
     }
 
-    private static List<IMethodSymbol> GetMethods(INamedTypeSymbol interfaceSymbol)
+    private static List<IMethodSymbol> GetMethods(ITypeSymbol interfaceSymbol)
     {
         var interfaceMembers = interfaceSymbol.GetMembers();
 
@@ -95,7 +136,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         
         foreach (var genericNameSyntax in parameters)
         {
-            var genericTypeSymbol = context.SemanticModel.GetSymbolInfo(genericNameSyntax).Symbol;
+            var genericTypeSymbol = context.SemanticModel.GetDeclaredSymbol(genericNameSyntax) ?? context.SemanticModel.GetSymbolInfo(genericNameSyntax).Symbol;
 
             if (genericTypeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase) != typeof(AllOf<>).GetFullNameWithoutGenericArity())
             {
@@ -104,7 +145,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
             
             var typeArgument = genericNameSyntax.TypeArgumentList.Arguments.First();
 
-            var argumentSymbol = context.SemanticModel.GetSymbolInfo(typeArgument).Symbol;
+            var argumentSymbol = context.SemanticModel.GetDeclaredSymbol(typeArgument) ?? context.SemanticModel.GetSymbolInfo(typeArgument).Symbol;
 
             if (argumentSymbol is not INamedTypeSymbol argumentNamedTypeSymbol)
             {

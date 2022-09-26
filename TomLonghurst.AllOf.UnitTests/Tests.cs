@@ -170,5 +170,30 @@ public class Tests
         Assert.That(constructorClass.MyTestInterface.OnEach(), Is.Not.Null);
     }
     
+    [Test]
+    public void ConstructorWithAllOfWrapper()
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<IMyInterfaceWithoutAttribute, MyClassWithoutAttribute>()
+            .AddSingleton<ConstructorWithAllOfWrapper>()
+            .AddSingleton(typeof(PublisherOf<>), typeof(PublisherOfImpl<>))
+            .AddAllOfs()
+            .BuildServiceProvider();
+
+        var allOf = serviceProvider.GetRequiredService<AllOf<IMyInterfaceWithoutAttribute>>();
+
+        Assert.That(allOf, Is.Not.Null);
+
+        var implementation = allOf.OnEach();
+        
+        Assert.That(implementation, Is.Not.Null);
+        
+        var constructorClass = serviceProvider.GetRequiredService<ConstructorWithAllOfWrapper>();
+        
+        Assert.That(constructorClass, Is.Not.Null);
+        Assert.That(constructorClass.Publisher, Is.Not.Null);
+        Assert.That(constructorClass.Publisher.ForEachSubscriber(), Is.Not.Null);
+    }
+    
     
 }
