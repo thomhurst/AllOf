@@ -117,11 +117,6 @@ public class AllOfGenerator : ISourceGenerator
                 codeWriter.WriteLine("{");
                 GenerateBody(codeWriter, methodSymbol);
                 codeWriter.WriteLine("}");
-                
-                codeWriter.WriteLine();
-                codeWriter.WriteLine($"public static implicit operator AllOf_{interfaceShortName}_Impl(AllOfImpl<AllOf_{interfaceShortName}_Impl> allOf) => allOf.OnEach();"); 
-                codeWriter.WriteLine();
-                
                 codeWriter.WriteLine();
             }
             
