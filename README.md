@@ -59,7 +59,7 @@ public class MyWorker
       _myPublisher = myPublisher;
   }
     
-  public Task DoSomething()
+  public async Task DoSomething()
   {
         ...
         _myPublisher.PublishSomething();
@@ -84,7 +84,7 @@ public class MyWorker
       _myInterfaces = myInterfaces;
   }
     
-  public void DoSomething()
+  public async Task DoSomething()
   {
         ...
         _myInterfaces.OnEach().DoSomething();
