@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using TomLonghurst.AllOf.Extensions;
-
 namespace TomLonghurst.AllOf.UnitTests;
 
 public class DummyClassTests
@@ -16,7 +15,7 @@ public class DummyClassTests
             .BuildServiceProvider();
 
         var scope = services.CreateScope().ServiceProvider;
-        scope.GetRequiredService<AllOf_IMyDummyTestInterface>().Blah();
+        scope.GetRequiredService<Models.AllOf<IMyDummyTestInterface>>().OnEach().Blah();
 
         var transient = Get<MyTransientTestClass>(scope);
         var scoped = Get<MyScopedTestClass>(scope);
@@ -26,7 +25,7 @@ public class DummyClassTests
         Assert.That(scoped.BlahCount, Is.EqualTo(1));
         Assert.That(singleton.BlahCount, Is.EqualTo(1));
 
-        scope.GetRequiredService<AllOf_IMyDummyTestInterface>().Blah();
+        scope.GetRequiredService<Models.AllOf<IMyDummyTestInterface>>().OnEach().Blah();
 
         Assert.That(transient.BlahCount, Is.EqualTo(0));
         Assert.That(scoped.BlahCount, Is.EqualTo(2));
@@ -42,7 +41,7 @@ public class DummyClassTests
         Assert.That(newScopedScoped.BlahCount, Is.EqualTo(0));
         Assert.That(newScopedSingleton.BlahCount, Is.EqualTo(2));
 
-        newScope.GetRequiredService<AllOf_IMyDummyTestInterface>().Blah();
+        newScope.GetRequiredService<Models.AllOf<IMyDummyTestInterface>>().OnEach().Blah();
 
         Assert.That(newScopedTransient.BlahCount, Is.EqualTo(0));
         Assert.That(newScopedScoped.BlahCount, Is.EqualTo(1));
@@ -50,7 +49,7 @@ public class DummyClassTests
 
         T Get<T>(IServiceProvider? scope = null) where T : class
         {
-            return scope.GetService<AllOf_IMyDummyTestInterface>()
+            return scope.GetService<Models.AllOf<IMyDummyTestInterface>>()
                 .Items
                 .OfType<T>()
                 .First();

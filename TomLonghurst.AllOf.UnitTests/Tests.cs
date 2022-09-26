@@ -24,11 +24,11 @@ public class Tests
         
         var stringBuilder = new StringBuilder();
     
-        var myInterface = serviceProvider.GetRequiredService<AllOf_IMyTestInterface>();
+        var myInterface = serviceProvider.GetRequiredService<AllOf<IMyTestInterface>>();
         
         Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyTestInterface_Impl"));
         
-        myInterface.Blah(str => stringBuilder.Append(str + " "));
+        myInterface.OnEach().Blah(str => stringBuilder.Append(str + " "));
         
         Assert.That(stringBuilder.ToString(), Is.EqualTo("MyTestClass MyTestClass2 MyTestClass3 "));
     }
@@ -45,11 +45,11 @@ public class Tests
         
         var stringBuilder = new StringBuilder();
     
-        var myInterface = serviceProvider.GetRequiredService<AllOf_IMyAsyncTestInterface>();
+        var myInterface = serviceProvider.GetRequiredService<AllOf<IMyAsyncTestInterface>>();
         
         Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyAsyncTestInterface_Impl"));
 
-        var task = myInterface.BlahAsync(async str =>
+        var task = myInterface.OnEach().BlahAsync(async str =>
         {
             await Task.Delay(1000);
             stringBuilder.Append(str + " ");
@@ -76,11 +76,11 @@ public class Tests
         
         var stringBuilder = new StringBuilder();
     
-        var myInterface = serviceProvider.GetRequiredService<AllOf_IMyValueTaskAsyncTestInterface>();
+        var myInterface = serviceProvider.GetRequiredService<AllOf<IMyValueTaskAsyncTestInterface>>();
         
         Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyValueTaskAsyncTestInterface_Impl"));
     
-        var task = myInterface.BlahAsync(async str =>
+        var task = myInterface.OnEach().BlahAsync(async str =>
         {
             await Task.Delay(100);
             stringBuilder.Append(str + " ");
@@ -110,13 +110,13 @@ public class Tests
             .BuildServiceProvider();
     
         var scope = services.CreateScope().ServiceProvider;
-        scope.GetRequiredService<AllOf_IMyTestInterface>().Blah(str => {});
+        scope.GetRequiredService<AllOf<IMyTestInterface>>().OnEach().Blah(str => {});
         
         mock1.Verify(x => x.Blah(It.IsAny<Action<string>>()), Times.Once);
         mock2.Verify(x => x.Blah(It.IsAny<Action<string>>()), Times.Once);
         mock3.Verify(x => x.Blah(It.IsAny<Action<string>>()), Times.Once);
         
-        scope.GetRequiredService<AllOf_IMyTestInterface>().Blah(str => {});
+        scope.GetRequiredService<AllOf<IMyTestInterface>>().OnEach().Blah(str => {});
         
         mock1.Verify(x => x.Blah(It.IsAny<Action<string>>()), Times.Exactly(2));
         mock2.Verify(x => x.Blah(It.IsAny<Action<string>>()), Times.Exactly(2));
@@ -153,8 +153,6 @@ public class Tests
             .BuildServiceProvider();
 
         var allOf = serviceProvider.GetRequiredService<AllOf<IMyInterfaceWithoutAttribute>>();
-
-        AllOf_IMyInterfaceWithoutAttribute blah = default;
         
         Assert.That(allOf, Is.Not.Null);
 
