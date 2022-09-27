@@ -16,48 +16,32 @@ public static class DependencyInjectionExtensions
 
         var allTypes = GetAllTypes();
         
-        RegisterAllOf(services, allTypes);
-        RegisterUserTypes(services, allTypes);
+        var allOfBaseInterface = typeof(AllOf<>);
+
+        var typesImplementingAllOf = allTypes
+            .Where(x => x.IsClass)
+            .Where(x => x.GetInterfaces()
+                .Where(i => i.IsGenericType)
+                .Select(i => i.GetGenericTypeDefinition())
+                .Contains(allOfBaseInterface))
+            .Where(x => !(x.IsGenericType && x.GetGenericTypeDefinition() == typeof(AllOfImpl<>)))
+            .ToList();
+
+        foreach (var type in typesImplementingAllOf)
+        {
+            var allOfInterface = type.GetInterfaces()
+                .Where(i => i.IsGenericType)
+                .First(i => i.GetGenericTypeDefinition() == allOfBaseInterface);
+            
+            var otherInterface = type.GetInterfaces()
+                .First(i => i.GetInterfaces().Contains(allOfInterface)
+                );
+
+            services.AddTransient(allOfInterface, type);
+            services.AddTransient(otherInterface, type);
+        }
 
         return services;
-    }
-
-    private static void RegisterAllOf(IServiceCollection services, List<Type> allTypes)
-    {
-        var allOfBaseInterface = typeof(AllOf<>);
-        
-        var internalTypes = new[] { typeof(IAllOf).FullName, typeof(AllOf<>).GetFullNameWithoutGenericArity() };
-        
-        foreach (var userDeclaredType in allTypes
-                     .Where(type => !type.IsInterface)
-                     .Where(type => type.GetInterfaces().Any(i => i.GetFullNameWithoutGenericArity() == "TomLonghurst.AllOf.Models.AllOf")))
-        {
-            var userDeclaredInterface = userDeclaredType.GetInterfaces()
-                .First(i => !internalTypes.Contains(i.GetFullNameWithoutGenericArity())
-                            && !i.GetInterfaces().Any(i2 => internalTypes.Contains(i2.GetFullNameWithoutGenericArity())));
-
-            var allOfWithGenericTypeProvided = allOfBaseInterface.MakeGenericType(userDeclaredInterface);
-
-            services.AddTransient(allOfWithGenericTypeProvided, userDeclaredType);
-        }
-    }
-
-    private static void RegisterUserTypes(IServiceCollection services, List<Type> allTypes)
-    {
-        var allOfBaseInterface = typeof(IAllOf);
-
-        foreach (var interfaceType in allTypes
-                     .Where(type => type.IsInterface)
-                     .Where(type => allOfBaseInterface != type)
-                     .Where(type => allOfBaseInterface.IsAssignableFrom(type)))
-        {
-            foreach (var implementationType in allTypes
-                         .Where(type => type.IsClass)
-                         .Where(type => interfaceType.IsAssignableFrom(type)))
-            {
-                services.AddTransient(interfaceType, implementationType);
-            }
-        }
     }
 
     private static IReadOnlyList<Assembly> GetAllAssemblies()
