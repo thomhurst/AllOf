@@ -149,7 +149,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 
             if (argumentSymbol is ITypeParameterSymbol)
             {
-                FindGenericTypesOf(context, constructorDeclarationSyntax.Parent as ClassDeclarationSyntax);
+                FindGenericTypesOf(context, constructorDeclarationSyntax);
                 continue;
             }
             
@@ -168,9 +168,13 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         }
     }
 
-    private void FindGenericTypesOf(GeneratorSyntaxContext context, ClassDeclarationSyntax? syntax)
+    private void FindGenericTypesOf(GeneratorSyntaxContext context, ConstructorDeclarationSyntax syntax)
     {
-        var classSymbol = GetSymbol(context, syntax) as INamedTypeSymbol;
+        var classSyntax = syntax.Ancestors()
+            .OfType<ClassDeclarationSyntax>()
+            .First();
+
+        var classSymbol = GetSymbol(context, classSyntax) as ITypeSymbol;
 
         var interfaceSymbol = classSymbol?.Interfaces.FirstOrDefault();
 
