@@ -80,8 +80,24 @@ public static class DependencyInjectionExtensions
 
     private static List<Type> GetAllTypes()
     {
-        return GetAllAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .ToList();
+        while (true)
+        {
+            var types = GetAllAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .ToList();
+
+            var previousCount = types.Count;
+
+            var newCount = GetAllAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .ToList().Count;
+            
+            if (newCount != previousCount)
+            {
+                continue;
+            }
+
+            return types;
+        }
     }
 }
