@@ -31,8 +31,8 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 
     private void Process(GeneratorSyntaxContext context, TypeSyntax typeSyntax)
     {
-        var symbol = context.SemanticModel.GetDeclaredSymbol(typeSyntax) ?? context.SemanticModel.GetSymbolInfo(typeSyntax).Symbol;
-
+        var symbol = GetSymbol(context, typeSyntax);
+        
         if (symbol is not INamedTypeSymbol typeSymbol)
         {
             return;
@@ -67,7 +67,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 
     private void Process(GeneratorSyntaxContext context, InterfaceDeclarationSyntax interfaceDeclarationSyntax)
     {
-        var symbol = context.SemanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax) ?? context.SemanticModel.GetSymbolInfo(interfaceDeclarationSyntax).Symbol;
+        var symbol = GetSymbol(context, interfaceDeclarationSyntax);
 
         if (symbol is not INamedTypeSymbol interfaceSymbol)
         {
@@ -136,20 +136,26 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         
         foreach (var genericNameSyntax in parameters)
         {
-            var genericTypeSymbol = context.SemanticModel.GetDeclaredSymbol(genericNameSyntax) ?? context.SemanticModel.GetSymbolInfo(genericNameSyntax).Symbol;
+            var genericTypeSymbol = GetSymbol(context, genericNameSyntax);
 
             if (genericTypeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase) != typeof(AllOf<>).GetFullNameWithoutGenericArity())
             {
-                return;
+                continue;
             }
             
             var typeArgument = genericNameSyntax.TypeArgumentList.Arguments.First();
 
-            var argumentSymbol = context.SemanticModel.GetDeclaredSymbol(typeArgument) ?? context.SemanticModel.GetSymbolInfo(typeArgument).Symbol;
+            var argumentSymbol = GetSymbol(context, typeArgument);
 
+            if (argumentSymbol is ITypeParameterSymbol)
+            {
+                FindGenericTypesOf(context, constructorDeclarationSyntax.Parent as ClassDeclarationSyntax);
+                continue;
+            }
+            
             if (argumentSymbol is not INamedTypeSymbol argumentNamedTypeSymbol)
             {
-                return;
+                continue;
             }
             
             var methods = GetMethods(argumentNamedTypeSymbol);
@@ -160,5 +166,45 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
                 MethodsInInterface = methods,
             });
         }
+    }
+
+    private void FindGenericTypesOf(GeneratorSyntaxContext context, ClassDeclarationSyntax? syntax)
+    {
+        var classSymbol = GetSymbol(context, syntax) as INamedTypeSymbol;
+
+        var interfaceSymbol = classSymbol?.Interfaces.FirstOrDefault();
+
+        var namedTypeSymbols = syntax.Ancestors()
+            .SelectMany(a => a.DescendantNodes())
+            .OfType<TypeSyntax>()
+            .Select(ts => GetSymbol(context, ts))
+            .OfType<INamedTypeSymbol>()
+            .ToList();
+        
+        var typeSymbols = namedTypeSymbols
+            .Where(nts => nts.ToDisplayString(SymbolDisplayFormats.GenericBase) == interfaceSymbol?.ToDisplayString(SymbolDisplayFormats.GenericBase));
+        
+        foreach (var typeSyntax in typeSymbols)
+        {
+            var argumentSymbol = typeSyntax.TypeArguments.FirstOrDefault();
+            
+            if (argumentSymbol is not INamedTypeSymbol argumentNamedTypeSymbol)
+            {
+                continue;
+            }
+
+            var methods = GetMethods(argumentNamedTypeSymbol);
+
+            Identified.Add(new IndentifiedAllOf
+            {
+                InterfaceType = argumentNamedTypeSymbol,
+                MethodsInInterface = methods,
+            });
+        }
+    }
+
+    private ISymbol? GetSymbol(GeneratorSyntaxContext context, SyntaxNode syntaxNode)
+    {
+        return context.SemanticModel.GetDeclaredSymbol(syntaxNode) ?? context.SemanticModel.GetSymbolInfo(syntaxNode).Symbol;
     }
 }

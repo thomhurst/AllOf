@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\TomLonghurst.AllOf\TomLonghurst.AllOf.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true"/>
+      <ProjectReference Include="..\TomLonghurst.AllOf\TomLonghurst.AllOf.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
     </ItemGroup>
 
 </Project>

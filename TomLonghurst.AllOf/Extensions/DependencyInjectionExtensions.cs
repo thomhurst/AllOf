@@ -14,7 +14,8 @@ public static class DependencyInjectionExtensions
             throw new ReadOnlyException($"{nameof(services)} is read only");
         }
 
-        var allTypes = GetAllTypes();
+        var allTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => a.GetTypes());
         
         var allOfBaseInterface = typeof(AllOf<>);
 

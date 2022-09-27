@@ -13,7 +13,7 @@ public class AllOfGenerator : ISourceGenerator
     private const string AsyncKeyword = "async ";
     private const string VoidKeyword = "void";
 
-    private List<string> typesWritten = new();
+    private readonly List<string> _typesWritten = new();
 
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -70,12 +70,12 @@ public class AllOfGenerator : ISourceGenerator
             var interfaceShortName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
             var interfaceLongName = typeSymbol.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
 
-            if (typesWritten.Contains(interfaceLongName))
+            if (_typesWritten.Contains(interfaceLongName))
             {
                 continue;
             }
             
-            typesWritten.Add(interfaceLongName);
+            _typesWritten.Add(interfaceLongName);
             
             codeWriter.WriteLine($"namespace {typeSymbol.ContainingNamespace}");
             codeWriter.WriteLine("{");
