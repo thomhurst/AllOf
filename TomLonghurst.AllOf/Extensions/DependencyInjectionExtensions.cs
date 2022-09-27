@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using TomLonghurst.AllOf.Models;
 
@@ -13,24 +14,21 @@ public static class DependencyInjectionExtensions
             throw new ReadOnlyException($"{nameof(services)} is read only");
         }
 
-        RegisterAllOf(services);
-        RegisterUserTypes(services);
+        var allTypes = GetAllTypes();
+        
+        RegisterAllOf(services, allTypes);
+        RegisterUserTypes(services, allTypes);
 
         return services;
     }
 
-    private static void RegisterAllOf(IServiceCollection services)
+    private static void RegisterAllOf(IServiceCollection services, List<Type> allTypes)
     {
         var allOfBaseInterface = typeof(AllOf<>);
-
-        var typesInAssemblies = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .ToList();
-
+        
         var internalTypes = new[] { typeof(IAllOf).FullName, typeof(AllOf<>).GetFullNameWithoutGenericArity() };
         
-        foreach (var userDeclaredType in typesInAssemblies
+        foreach (var userDeclaredType in allTypes
                      .Where(type => !type.IsInterface)
                      .Where(type => type.GetInterfaces().Any(i => i.GetFullNameWithoutGenericArity() == "TomLonghurst.AllOf.Models.AllOf")))
         {
@@ -44,26 +42,46 @@ public static class DependencyInjectionExtensions
         }
     }
 
-    private static void RegisterUserTypes(IServiceCollection services)
+    private static void RegisterUserTypes(IServiceCollection services, List<Type> allTypes)
     {
         var allOfBaseInterface = typeof(IAllOf);
 
-        var typesInAssemblies = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .SelectMany(assembly => assembly.GetTypes())
-            .ToList();
-
-        foreach (var interfaceType in typesInAssemblies
+        foreach (var interfaceType in allTypes
                      .Where(type => type.IsInterface)
                      .Where(type => allOfBaseInterface != type)
                      .Where(type => allOfBaseInterface.IsAssignableFrom(type)))
         {
-            foreach (var implementationType in typesInAssemblies
+            foreach (var implementationType in allTypes
                          .Where(type => type.IsClass)
                          .Where(type => interfaceType.IsAssignableFrom(type)))
             {
                 services.AddTransient(interfaceType, implementationType);
             }
         }
+    }
+
+    private static IReadOnlyList<Assembly> GetAllAssemblies()
+    {
+        var loadedAssemblies = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .ToList();
+
+        var otherReferencesAssemblies = loadedAssemblies
+            .SelectMany(x => x.GetReferencedAssemblies())
+            .Distinct()
+            .Where(y => loadedAssemblies.Any(a => a.FullName == y.FullName) == false)
+            .Select(name => AppDomain.CurrentDomain.Load(name))
+            .ToList();
+        
+        loadedAssemblies.AddRange(otherReferencesAssemblies);
+
+        return loadedAssemblies;
+    }
+
+    private static List<Type> GetAllTypes()
+    {
+        return GetAllAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .ToList();
     }
 }

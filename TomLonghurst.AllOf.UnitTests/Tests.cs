@@ -149,13 +149,13 @@ public class Tests
             .AddAllOfs()
             .BuildServiceProvider();
         
-        var myInterface = serviceProvider.GetRequiredService<AllOf_IMyDependentInterface>();
+        var myInterface = serviceProvider.GetRequiredService<AllOf<IMyDependentInterface>>();
         
         Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyDependentInterface_Impl"));
 
         var result = 1;
         
-        myInterface.MyDependentMethod(ref result);
+        myInterface.OnEach().MyDependentMethod(ref result);
         
         Assert.That(result, Is.EqualTo(123));
     }
