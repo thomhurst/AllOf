@@ -1,5 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using TomLonghurst.AllOf.Extensions;
+using TomLonghurst.AllOf.Models;
 using TomLonghurst.AllOf.SourceGenerator.Helpers;
 
 namespace TomLonghurst.AllOf.SourceGenerator;
@@ -34,7 +37,7 @@ internal class AllOfSyntaxReceiver : ISyntaxContextReceiver
         {
             return;
         }
-
+        
         var interfaceArguments = typeSymbol.TypeArguments
             .OfType<INamedTypeSymbol>()
             .Where(nts => nts.TypeKind == TypeKind.Interface)
@@ -50,11 +53,19 @@ internal class AllOfSyntaxReceiver : ISyntaxContextReceiver
                 MethodsInInterface = methods
             });
         }
+
+        if (symbol.ToDisplayString(SymbolDisplayFormats.GenericBase) ==
+            typeof(AllOf<>).GetFullNameWithoutGenericArity())
+        {
+            
+        }
+
+        
     }
 
     private bool HasNoReturnTypes(INamedTypeSymbol type)
     {
-        var members = type.GetMembers();
+        var members = GetMembers(type);
         
         if (members.OfType<IPropertySymbol>().Any())
         {
@@ -71,6 +82,14 @@ internal class AllOfSyntaxReceiver : ISyntaxContextReceiver
             var fullTypeName = m.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
             return fullTypeName == typeof(Task).FullName || fullTypeName == typeof(ValueTask).FullName;
         });
+    }
+
+    private static ImmutableArray<ISymbol> GetMembers(INamedTypeSymbol type)
+    {
+        return type.GetMembers().Concat(
+                type.AllInterfaces.SelectMany(i => i.GetMembers())
+            )
+            .ToImmutableArray();
     }
 
     private ISymbol? GetSymbol(GeneratorSyntaxContext context, SyntaxNode syntaxNode)

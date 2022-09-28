@@ -69,9 +69,11 @@ public class AllOfGenerator : ISourceGenerator
             
             var interfaceShortName = typeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase).Split('.').Last();
             var interfaceLongName = typeSymbol.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
+
+            var guid = Guid.NewGuid().ToString("N");
             
             var generics = typeSymbol.TypeParameters.Any()
-                ? $"<{string.Join(", ", typeSymbol.Name)}>"
+                ? $"<{string.Join(", ", typeSymbol.ToDisplayString(SymbolDisplayFormats.NamespaceAndType))}>"
                 : string.Empty;
             
             if (_typesWritten.Contains(interfaceLongName))
@@ -89,16 +91,16 @@ public class AllOfGenerator : ISourceGenerator
             codeWriter.WriteLine($"/// <para>Be sure to call .AddAllOfs() on your IServiceCollection to register this type</para>"); 
             codeWriter.WriteLine("/// </summary>");
 
-            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName}{generics} : AllOf<{interfaceLongName}>, {interfaceLongName}");
+            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName}_{guid}{generics} : AllOf<{interfaceLongName}>, {interfaceLongName}");
             codeWriter.WriteLine("{");
             
-            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}{generics}");
+            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl_{guid}{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}_{guid}{generics}");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl(IEnumerable<{interfaceLongName}> items) : base(items)");
+            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items) : base(items)");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
-            codeWriter.WriteLine($"public override {interfaceShortName}{generics} OnEach() => this;");
+            codeWriter.WriteLine($"public override {interfaceLongName} OnEach() => this;");
             
             foreach (var methodSymbol in identifiedDecorator.MethodsInInterface)
             {
@@ -108,9 +110,7 @@ public class AllOfGenerator : ISourceGenerator
                 var returnType = methodSymbol.ReturnsVoid 
                 ? VoidKeyword
                 : methodSymbol.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType) ;
-
-                var asyncKeyword = methodSymbol.ReturnsVoid ? string.Empty : AsyncKeyword;
-
+                
                 codeWriter.WriteLine("/// <summary>");
                 codeWriter.WriteLine($"/// Calls {methodSymbol.Name} on each item in the <see cref=\"IEnumerable{{{interfaceShortName}}}\"/>");
                 codeWriter.WriteLine("/// </summary>");
