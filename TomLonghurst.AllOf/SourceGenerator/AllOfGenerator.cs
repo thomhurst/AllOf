@@ -17,22 +17,22 @@ public class AllOfGenerator : ISourceGenerator
 
     public void Initialize(GeneratorInitializationContext context)
     {
+        context.RegisterForSyntaxNotifications(() => new AllOfSyntaxReceiver());
+    }
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        if (context.SyntaxContextReceiver is not AllOfSyntaxReceiver syntaxReciever)
+        {
+            return;
+        }
+        
 #if DEBUG
         if (!System.Diagnostics.Debugger.IsAttached)
         {
             //System.Diagnostics.Debugger.Launch();
         }
 #endif
-        
-        context.RegisterForSyntaxNotifications(() => new AllOfAttributeSyntaxReceiver());
-    }
-
-    public void Execute(GeneratorExecutionContext context)
-    {
-        if (context.SyntaxContextReceiver is not AllOfAttributeSyntaxReceiver syntaxReciever)
-        {
-            return;
-        }
 
         var source = GenerateSource(context, syntaxReciever);
 
@@ -44,7 +44,7 @@ public class AllOfGenerator : ISourceGenerator
     /// <para><see cref="IEnumerable{T}"/></para> 
     /// <para>This is line 2</para> 
     /// </summary> 
-    private string GenerateSource(GeneratorExecutionContext context, AllOfAttributeSyntaxReceiver syntaxReciever)
+    private string GenerateSource(GeneratorExecutionContext context, AllOfSyntaxReceiver syntaxReciever)
     {
         var codeWriter = new CodeGenerationTextWriter();
         
