@@ -62,27 +62,4 @@ public static class DependencyInjectionExtensions
 
         return loadedAssemblies;
     }
-
-    private static List<Type> GetAllTypes()
-    {
-        while (true)
-        {
-            var types = GetAllAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .ToList();
-
-            var previousCount = types.Count;
-
-            var newCount = GetAllAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .ToList().Count;
-            
-            if (newCount != previousCount)
-            {
-                continue;
-            }
-
-            return types;
-        }
-    }
 }
