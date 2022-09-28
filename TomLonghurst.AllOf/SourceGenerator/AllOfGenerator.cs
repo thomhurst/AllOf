@@ -67,9 +67,13 @@ public class AllOfGenerator : ISourceGenerator
         {
             var typeSymbol = identifiedDecorator.InterfaceType;
             
-            var interfaceShortName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            var interfaceShortName = typeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase).Split('.').Last();
             var interfaceLongName = typeSymbol.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
-
+            
+            var generics = typeSymbol.TypeParameters.Any()
+                ? $"<{string.Join(", ", typeSymbol.Name)}>"
+                : string.Empty;
+            
             if (_typesWritten.Contains(interfaceLongName))
             {
                 continue;
@@ -85,16 +89,16 @@ public class AllOfGenerator : ISourceGenerator
             codeWriter.WriteLine($"/// <para>Be sure to call .AddAllOfs() on your IServiceCollection to register this type</para>"); 
             codeWriter.WriteLine("/// </summary>");
 
-            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName} : AllOf<{interfaceLongName}>, {interfaceLongName}");
+            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName}{generics} : AllOf<{interfaceLongName}>, {interfaceLongName}");
             codeWriter.WriteLine("{");
             
-            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}");
+            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}{generics}");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl(IEnumerable<{interfaceLongName}> items) : base(items)");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
-            codeWriter.WriteLine($"public override {interfaceShortName} OnEach() => this;");
+            codeWriter.WriteLine($"public override {interfaceShortName}{generics} OnEach() => this;");
             
             foreach (var methodSymbol in identifiedDecorator.MethodsInInterface)
             {

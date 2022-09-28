@@ -37,7 +37,8 @@ internal class AllOfSyntaxReceiver : ISyntaxContextReceiver
 
         var interfaceArguments = typeSymbol.TypeArguments
             .OfType<INamedTypeSymbol>()
-            .Where(nts => nts.TypeKind == TypeKind.Interface);
+            .Where(nts => nts.TypeKind == TypeKind.Interface)
+            .Where(HasNoReturnTypes);
 
         foreach (var interfaceArgument in interfaceArguments)
         {
@@ -49,6 +50,27 @@ internal class AllOfSyntaxReceiver : ISyntaxContextReceiver
                 MethodsInInterface = methods
             });
         }
+    }
+
+    private bool HasNoReturnTypes(INamedTypeSymbol type)
+    {
+        var members = type.GetMembers();
+        
+        if (members.OfType<IPropertySymbol>().Any())
+        {
+            return false;
+        }
+
+        return members.OfType<IMethodSymbol>().All(m =>
+        {
+            if (m.ReturnsVoid)
+            {
+                return true;
+            }
+
+            var fullTypeName = m.ReturnType.ToDisplayString(SymbolDisplayFormats.NamespaceAndType);
+            return fullTypeName == typeof(Task).FullName || fullTypeName == typeof(ValueTask).FullName;
+        });
     }
 
     private ISymbol? GetSymbol(GeneratorSyntaxContext context, SyntaxNode syntaxNode)
