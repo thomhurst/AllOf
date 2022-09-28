@@ -1,7 +1,10 @@
 # AllOf
 
 Use `Publish/Subscribe` type classes without creating Publisher classes just to call Subscriber classes.
-Create your implementations, register them under the same interface, and just inject in AllOf<Interface> and use that to send a 'Publish' command.
+
+- Create your implementations
+- Register them under the same interface
+- Inject in AllOf<Interface> and use that to send a 'Publish' command.
 
 ## Support
 
@@ -56,7 +59,7 @@ public class MyWorker
       _myPublisher = myPublisher;
   }
     
-  public Task DoSomething()
+  public async Task DoSomething()
   {
         ...
         _myPublisher.PublishSomething();
@@ -81,11 +84,11 @@ public class MyWorker
       _myInterfaces = myInterfaces;
   }
     
-  public void DoSomething()
+  public async Task DoSomething()
   {
         ...
-        _myInterfaces.OnEach().PublishSomething();
-        await _myInterfaces.OnEach().PublishSomethingAsync();
+        _myInterfaces.OnEach().DoSomething();
+        await _myInterfaces.OnEach().DoSomethingAsync();
   }
 }
 ```
@@ -123,7 +126,7 @@ public class MyWorker
 }
 ```
 
-4.  Call `AllOf.OnEach().SomeMethod()` and it'll call the same method in all of the different implementations. This handles asynchronous Tasks as well as Synchronous tasks, so no loop or Task handling.
+4.  Call `AllOf.OnEach().SomeMethod()` and it'll call the same method in all of the different implementations. This handles asynchronous Tasks as well as synchronous methods, so no loop or Task handling for you to implement.
 
 ```csharp
 _myInterfaces.OnEach().DoSomething();
@@ -188,6 +191,11 @@ public class MyLoginService
     public MyLoginService(PublisherOf<ICustomerLoggedInEvent> customerLoggedInEventPublisher)
     {
         _customerLoggedInEventPublisher = customerLoggedInEventPublisher;
+    }
+
+    public void DoStuff()
+    {
+        _customerLoggedInEventPublisher.ForEachSubscriber().DoThis();
     }
 }
 ```
