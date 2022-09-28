@@ -28,7 +28,7 @@ public class Tests
     
         var myInterface = serviceProvider.GetRequiredService<AllOf<IMyTestInterface>>();
         
-        Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyTestInterface_Impl"));
+        Assert.That(myInterface.GetType().Name, Does.StartWith("AllOf_IMyTestInterface_Impl"));
         
         myInterface.OnEach().Blah(str => stringBuilder.Append(str + " "));
         
@@ -51,7 +51,7 @@ public class Tests
     
         var myInterface = serviceProvider.GetRequiredService<AllOf<IMyAsyncTestInterface>>();
         
-        Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyAsyncTestInterface_Impl"));
+        Assert.That(myInterface.GetType().Name, Does.StartWith("AllOf_IMyAsyncTestInterface_Impl"));
 
         var task = myInterface.OnEach().BlahAsync(async str =>
         {
@@ -87,7 +87,7 @@ public class Tests
     
         var myInterface = serviceProvider.GetRequiredService<AllOf<IMyValueTaskAsyncTestInterface>>();
         
-        Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyValueTaskAsyncTestInterface_Impl"));
+        Assert.That(myInterface.GetType().Name, Does.StartWith("AllOf_IMyValueTaskAsyncTestInterface_Impl"));
         
         var sbLock = new object();
 
@@ -151,7 +151,7 @@ public class Tests
         
         var myInterface = serviceProvider.GetRequiredService<AllOf<IMyDependentInterface>>();
         
-        Assert.That(myInterface.GetType().Name, Is.EqualTo("AllOf_IMyDependentInterface_Impl"));
+        Assert.That(myInterface.GetType().Name, Does.StartWith("AllOf_IMyDependentInterface_Impl"));
 
         var result = 1;
         
