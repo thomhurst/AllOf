@@ -20,7 +20,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         
         if (context.Node is ConstructorDeclarationSyntax constructorDeclarationSyntax)
         {
-            Process(context, constructorDeclarationSyntax);
+            Process(context, constructorDeclarationSyntax, typeof(AllOf<>).GetFullNameWithoutGenericArity());
         }
 
         if (context.Node is TypeSyntax typeSyntax)
@@ -124,13 +124,13 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         return methods;
     }
 
-    private void Process(GeneratorSyntaxContext context, ConstructorDeclarationSyntax constructorDeclarationSyntax)
+    private void Process(GeneratorSyntaxContext context, ConstructorDeclarationSyntax constructorDeclarationSyntax, string typeNameWithGeneric)
     {
         var parameters = constructorDeclarationSyntax.ParameterList
             .Parameters
             .Select(p => p.Type)
             .OfType<GenericNameSyntax>()
-            .Where(gns => gns.Identifier.ToString() == "AllOf")
+            .Where(gns => gns.Identifier.ToString() == typeNameWithGeneric.Split('.').Last())
             .Where(gns => gns.TypeArgumentList.Arguments.Count == 1)
             .ToList();
         
@@ -138,7 +138,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         {
             var genericTypeSymbol = GetSymbol(context, genericNameSyntax);
 
-            if (genericTypeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase) != typeof(AllOf<>).GetFullNameWithoutGenericArity())
+            if (genericTypeSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase) != typeNameWithGeneric)
             {
                 continue;
             }
@@ -149,7 +149,7 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 
             if (argumentSymbol is ITypeParameterSymbol)
             {
-                FindGenericTypesOf(context, constructorDeclarationSyntax);
+                FindGenericTypesOf(context, constructorDeclarationSyntax, argumentSymbol.Name);
                 continue;
             }
             
@@ -168,7 +168,8 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
         }
     }
 
-    private void FindGenericTypesOf(GeneratorSyntaxContext context, ConstructorDeclarationSyntax syntax)
+    private void FindGenericTypesOf(GeneratorSyntaxContext context, ConstructorDeclarationSyntax syntax,
+        string genericTypeName)
     {
         var classSyntax = syntax.Ancestors()
             .OfType<ClassDeclarationSyntax>()
@@ -178,19 +179,38 @@ internal class AllOfAttributeSyntaxReceiver : ISyntaxContextReceiver
 
         var interfaceSymbol = classSymbol?.Interfaces.FirstOrDefault();
 
+        var indexOfType = Array.FindIndex(interfaceSymbol?.TypeParameters.ToArray(), p => p.Name == genericTypeName);
+        
+        var otherConstructors = syntax.Ancestors()
+            .SelectMany(a => a.DescendantNodes())
+            .OfType<ConstructorDeclarationSyntax>();
+
+        foreach (var otherConstructor in otherConstructors)
+        {
+            Process(context, otherConstructor, interfaceSymbol.ToDisplayString(SymbolDisplayFormats.GenericBase));
+        }
+        
+        return;
+
         var namedTypeSymbols = syntax.Ancestors()
             .SelectMany(a => a.DescendantNodes())
             .OfType<TypeSyntax>()
             .Select(ts => GetSymbol(context, ts))
             .OfType<INamedTypeSymbol>()
+            .Distinct()
             .ToList();
-        
+
         var typeSymbols = namedTypeSymbols
-            .Where(nts => nts.ToDisplayString(SymbolDisplayFormats.GenericBase) == interfaceSymbol?.ToDisplayString(SymbolDisplayFormats.GenericBase));
+            .Where(nts =>
+            {
+                var genericBase = nts.ToDisplayString(SymbolDisplayFormats.GenericBase);
+                return genericBase == interfaceSymbol?.ToDisplayString(SymbolDisplayFormats.GenericBase)
+                       || genericBase == classSymbol?.ToDisplayString(SymbolDisplayFormats.GenericBase);
+            });
         
         foreach (var typeSyntax in typeSymbols)
         {
-            var argumentSymbol = typeSyntax.TypeArguments.FirstOrDefault();
+            var argumentSymbol = typeSyntax.TypeArguments[indexOfType];
             
             if (argumentSymbol is not INamedTypeSymbol argumentNamedTypeSymbol)
             {
