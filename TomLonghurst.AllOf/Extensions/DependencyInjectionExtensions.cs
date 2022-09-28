@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using TomLonghurst.AllOf.Models;
 
@@ -43,23 +42,5 @@ public static class DependencyInjectionExtensions
         }
 
         return services;
-    }
-
-    private static IReadOnlyList<Assembly> GetAllAssemblies()
-    {
-        var loadedAssemblies = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .ToList();
-
-        var otherReferencesAssemblies = loadedAssemblies
-            .SelectMany(x => x.GetReferencedAssemblies())
-            .Distinct()
-            .Where(y => loadedAssemblies.Any(a => a.FullName == y.FullName) == false)
-            .Select(name => AppDomain.CurrentDomain.Load(name))
-            .ToList();
-        
-        loadedAssemblies.AddRange(otherReferencesAssemblies);
-
-        return loadedAssemblies;
     }
 }
