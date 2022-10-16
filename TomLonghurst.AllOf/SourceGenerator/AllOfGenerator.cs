@@ -10,11 +10,10 @@ namespace TomLonghurst.AllOf.SourceGenerator;
 [Generator]
 public class AllOfGenerator : ISourceGenerator
 {
-    private const string AsyncKeyword = "async ";
     private const string VoidKeyword = "void";
 
     private readonly List<string> _typesWritten = new();
-
+    
     public void Initialize(GeneratorInitializationContext context)
     {
         context.RegisterForSyntaxNotifications(() => new AllOfSyntaxReceiver());
@@ -43,7 +42,7 @@ public class AllOfGenerator : ISourceGenerator
     /// Your Main comment 
     /// <para><see cref="IEnumerable{T}"/></para> 
     /// <para>This is line 2</para> 
-    /// </summary> 
+    /// </summary>
     private string GenerateSource(GeneratorExecutionContext context, AllOfSyntaxReceiver syntaxReciever)
     {
         var codeWriter = new CodeGenerationTextWriter();
@@ -85,22 +84,15 @@ public class AllOfGenerator : ISourceGenerator
             
             codeWriter.WriteLine($"namespace {typeSymbol.ContainingNamespace}");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine("/// <summary>");
-            codeWriter.WriteLine($"/// A wrapper around an <see cref=\"IEnumerable{{{interfaceShortName}}}\"/> with the same methods as {interfaceShortName}.");
-            codeWriter.WriteLine($"/// <para>Calling a method on this interface will call the same method on each item in the <see cref=\"IEnumerable{{{interfaceShortName}}}\"/></para>");
-            codeWriter.WriteLine($"/// <para>Be sure to call .AddAllOfs() on your IServiceCollection to register this type</para>"); 
-            codeWriter.WriteLine("/// </summary>");
 
-            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName}_{guid}{generics} : AllOf<{interfaceLongName}>, {interfaceLongName}");
+            codeWriter.WriteLine($"internal class AllOf_{interfaceShortName}_Impl_{guid}{generics} : {interfaceLongName}");
             codeWriter.WriteLine("{");
-            
-            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl_{guid}{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}_{guid}{generics}");
+            codeWriter.WriteLine($"private readonly IEnumerable<{interfaceLongName}> Items;");
+            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items)");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items) : base(items)");
-            codeWriter.WriteLine("{");
+            codeWriter.WriteLine("Items = items;");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
-            codeWriter.WriteLine($"public override {interfaceLongName} OnEach() => this;");
             
             foreach (var methodSymbol in identifiedDecorator.MethodsInInterface)
             {
@@ -122,7 +114,16 @@ public class AllOfGenerator : ISourceGenerator
             }
             
             codeWriter.WriteLine("}");
+
+            codeWriter.WriteLine($"internal partial class {nameof(AllOfData)}");
+            codeWriter.WriteLine("{");
+            codeWriter.WriteLine($"[System.Runtime.CompilerServices.ModuleInitializer]");
+            codeWriter.WriteLine($"internal static void Register{Guid.NewGuid():N}()");
+            codeWriter.WriteLine("{");
+            codeWriter.WriteLine($"{typeof(AllOfData).Namespace}.{nameof(AllOfData)}.{nameof(AllOfData.Implementations)}.TryAdd(typeof({interfaceLongName}), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
             codeWriter.WriteLine("}");
+            codeWriter.WriteLine("}");
+            
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
         }
