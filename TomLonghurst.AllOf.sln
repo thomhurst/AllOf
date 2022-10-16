@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomLonghurst.AllOf.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomLonghurst.AllOf.UnitTests.DependentProject", "TomLonghurst.AllOf.UnitTests.DependentProject\TomLonghurst.AllOf.UnitTests.DependentProject.csproj", "{56D50A11-2440-44DD-8518-CDD223C1B52E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TomLonghurst.AllOf.UnitTests.WrappedAllOf", "TomLonghurst.AllOf.UnitTests.WrappedAllOf\TomLonghurst.AllOf.UnitTests.WrappedAllOf.csproj", "{68C91285-0D69-4508-9C69-AEB024315DDF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{56D50A11-2440-44DD-8518-CDD223C1B52E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56D50A11-2440-44DD-8518-CDD223C1B52E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56D50A11-2440-44DD-8518-CDD223C1B52E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68C91285-0D69-4508-9C69-AEB024315DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68C91285-0D69-4508-9C69-AEB024315DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68C91285-0D69-4508-9C69-AEB024315DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68C91285-0D69-4508-9C69-AEB024315DDF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
