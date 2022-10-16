@@ -83,24 +83,15 @@ public class AllOfGenerator : ISourceGenerator
             
             _typesWritten.Add(interfaceLongName);
             
-            codeWriter.WriteLine($"namespace {typeSymbol.ContainingNamespace}");
+            codeWriter.WriteLine($"namespace {typeof(AllOfImpl<>).Namespace}");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine("/// <summary>");
-            codeWriter.WriteLine($"/// A wrapper around an <see cref=\"IEnumerable{{{interfaceShortName}}}\"/> with the same methods as {interfaceShortName}.");
-            codeWriter.WriteLine($"/// <para>Calling a method on this interface will call the same method on each item in the <see cref=\"IEnumerable{{{interfaceShortName}}}\"/></para>");
-            codeWriter.WriteLine($"/// <para>Be sure to call .AddAllOfs() on your IServiceCollection to register this type</para>"); 
-            codeWriter.WriteLine("/// </summary>");
 
-            codeWriter.WriteLine($"public interface AllOf_{interfaceShortName}_{guid}{generics} : AllOf<{interfaceLongName}>, {interfaceLongName}");
-            codeWriter.WriteLine("{");
-            
-            codeWriter.WriteLine($"private class AllOf_{interfaceShortName}_Impl_{guid}{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}_{guid}{generics}");
+            codeWriter.WriteLine($"internal class AllOf_{interfaceShortName}_Impl_{guid}{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}_{guid}{generics}");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items) : base(items)");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
-            codeWriter.WriteLine($"public override {interfaceLongName} OnEach() => this;");
             
             foreach (var methodSymbol in identifiedDecorator.MethodsInInterface)
             {
@@ -122,7 +113,15 @@ public class AllOfGenerator : ISourceGenerator
             }
             
             codeWriter.WriteLine("}");
+            
+            codeWriter.WriteLine($"public partial class {nameof(AllOfImpl<object>)}<T>");
+            codeWriter.WriteLine("{");
+            codeWriter.WriteLine($"internal static void Register{Guid.NewGuid():N}()");
+            codeWriter.WriteLine("{");
+            codeWriter.WriteLine($"{nameof(AllOfImpl<object>.Implementations)}.TryAdd(typeof(T), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
             codeWriter.WriteLine("}");
+            codeWriter.WriteLine("}");
+            
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
         }
