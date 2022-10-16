@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace TomLonghurst.AllOf.Models;
 
-public static partial class AllOfImpl
+public static class AllOfImpl
 {
     public static readonly ConcurrentDictionary<Type, Type> Implementations = new();
 }
