@@ -1,8 +1,6 @@
-﻿using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using TomLonghurst.AllOf.Extensions;
-using TomLonghurst.AllOf.Models;
 
 namespace TomLonghurst.AllOf.UnitTests.WrappedAllOf;
 

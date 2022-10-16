@@ -10,11 +10,10 @@ namespace TomLonghurst.AllOf.SourceGenerator;
 [Generator]
 public class AllOfGenerator : ISourceGenerator
 {
-    private const string AsyncKeyword = "async ";
     private const string VoidKeyword = "void";
 
     private readonly List<string> _typesWritten = new();
-
+    
     public void Initialize(GeneratorInitializationContext context)
     {
         context.RegisterForSyntaxNotifications(() => new AllOfSyntaxReceiver());
@@ -43,7 +42,7 @@ public class AllOfGenerator : ISourceGenerator
     /// Your Main comment 
     /// <para><see cref="IEnumerable{T}"/></para> 
     /// <para>This is line 2</para> 
-    /// </summary> 
+    /// </summary>
     private string GenerateSource(GeneratorExecutionContext context, AllOfSyntaxReceiver syntaxReciever)
     {
         var codeWriter = new CodeGenerationTextWriter();
@@ -83,13 +82,15 @@ public class AllOfGenerator : ISourceGenerator
             
             _typesWritten.Add(interfaceLongName);
             
-            codeWriter.WriteLine($"namespace {typeof(AllOfImpl<>).Namespace}");
+            codeWriter.WriteLine($"namespace {typeSymbol.ContainingNamespace}");
             codeWriter.WriteLine("{");
 
-            codeWriter.WriteLine($"internal class AllOf_{interfaceShortName}_Impl_{guid}{generics} : AllOfImpl<{interfaceLongName}>, AllOf_{interfaceShortName}_{guid}{generics}");
+            codeWriter.WriteLine($"internal class AllOf_{interfaceShortName}_Impl_{guid}{generics} : {interfaceLongName}");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items) : base(items)");
+            codeWriter.WriteLine($"private readonly IEnumerable<{interfaceLongName}> Items;");
+            codeWriter.WriteLine($"public AllOf_{interfaceShortName}_Impl_{guid}(IEnumerable<{interfaceLongName}> items)");
             codeWriter.WriteLine("{");
+            codeWriter.WriteLine("Items = items;");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine();
             
@@ -113,12 +114,13 @@ public class AllOfGenerator : ISourceGenerator
             }
             
             codeWriter.WriteLine("}");
-            
-            codeWriter.WriteLine($"public partial class {nameof(AllOfImpl<object>)}<T>");
+
+            codeWriter.WriteLine($"internal partial class {nameof(AllOfImpl)}");
             codeWriter.WriteLine("{");
+            codeWriter.WriteLine($"[System.Runtime.CompilerServices.ModuleInitializer]");
             codeWriter.WriteLine($"internal static void Register{Guid.NewGuid():N}()");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"{nameof(AllOfImpl<object>.Implementations)}.TryAdd(typeof(T), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
+            codeWriter.WriteLine($"{typeof(AllOfImpl).Namespace}.{nameof(AllOfImpl)}.{nameof(AllOfImpl.Implementations)}.TryAdd(typeof({interfaceLongName}), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine("}");
             

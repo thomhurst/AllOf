@@ -1,27 +1,17 @@
 using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace TomLonghurst.AllOf.Models;
 
-public partial class AllOfImpl<T> : AllOf<T>
+public static partial class AllOfImpl
 {
-    internal static readonly ConcurrentDictionary<Type, Type> Implementations = new();
-    
-    static AllOfImpl()
-    {
-        var registerMethods = typeof(AllOfImpl<>)
-            .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
-            .Where(m => m.Name.StartsWith("Register"));
+    public static readonly ConcurrentDictionary<Type, Type> Implementations = new();
+}
 
-        foreach (var registerMethod in registerMethods)
-        {
-            registerMethod.Invoke(null, null);
-        }
-    }
-
+internal class AllOfImpl<T> : AllOf<T>
+{
     private T GetRegisteredImplementation()
     {
-        if (Implementations.TryGetValue(typeof(T), out var implementationType))
+        if (AllOfImpl.Implementations.TryGetValue(typeof(T), out var implementationType))
         {
             return (T) Activator.CreateInstance(implementationType, Items);
         }
@@ -31,7 +21,7 @@ public partial class AllOfImpl<T> : AllOf<T>
     
     public IEnumerable<T> Items { get; }
 
-    protected AllOfImpl(IEnumerable<T> items)
+    public AllOfImpl(IEnumerable<T> items)
     {
         Items = items;
     }
