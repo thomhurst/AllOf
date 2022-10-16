@@ -115,12 +115,12 @@ public class AllOfGenerator : ISourceGenerator
             
             codeWriter.WriteLine("}");
 
-            codeWriter.WriteLine($"internal partial class {nameof(AllOfImpl)}");
+            codeWriter.WriteLine($"internal partial class {nameof(AllOfData)}");
             codeWriter.WriteLine("{");
             codeWriter.WriteLine($"[System.Runtime.CompilerServices.ModuleInitializer]");
             codeWriter.WriteLine($"internal static void Register{Guid.NewGuid():N}()");
             codeWriter.WriteLine("{");
-            codeWriter.WriteLine($"{typeof(AllOfImpl).Namespace}.{nameof(AllOfImpl)}.{nameof(AllOfImpl.Implementations)}.TryAdd(typeof({interfaceLongName}), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
+            codeWriter.WriteLine($"{typeof(AllOfData).Namespace}.{nameof(AllOfData)}.{nameof(AllOfData.Implementations)}.TryAdd(typeof({interfaceLongName}), typeof(AllOf_{interfaceShortName}_Impl_{guid}{generics}));");
             codeWriter.WriteLine("}");
             codeWriter.WriteLine("}");
             
