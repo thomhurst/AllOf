@@ -12,11 +12,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <CompilerGeneratedFilesOutputPath>DesiredPathForGeneratedStuff</CompilerGeneratedFilesOutputPath>
-    </PropertyGroup>
     
     <ItemGroup>
         <ProjectReference Include="..\TomLonghurst.AllOf\TomLonghurst.AllOf.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
