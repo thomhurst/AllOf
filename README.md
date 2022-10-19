@@ -45,7 +45,7 @@ public class MyPublisher : IMyPublisher
     
     public async Task PublishSomethingAsync()
     {
-        var tasks = _myInterfaces.Select(myInterface => myInterface.DoSomething());
+        var tasks = _myInterfaces.Select(myInterface => myInterface.DoSomethingAsync());
         await Task.WhenAll(tasks);
     }
 }
