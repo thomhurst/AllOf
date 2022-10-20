@@ -1,6 +1,6 @@
 # AllOf
 
-Use `Producer/Consumer` type classes without creating Publisher classes just to call Subscriber classes.
+Use `Producer/Consumer` type classes without creating Producer classes just to call Consumer classes.
 
 - Create your implementations
 - Register them under the same interface
