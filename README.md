@@ -1,6 +1,6 @@
 # AllOf
 
-Use `Publish/Subscribe` type classes without creating Publisher classes just to call Subscriber classes.
+Use `Producer/Consumer` type classes without creating Publisher classes just to call Subscriber classes.
 
 - Create your implementations
 - Register them under the same interface
